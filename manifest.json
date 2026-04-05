@@ -1,0 +1,10 @@
+{
+  "id": "obsidian-vaultmind",
+  "name": "VaultMind",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Vault health checker — find orphan notes, broken links, stale content, and missing overviews in seconds.",
+  "author": "Kenneth Law",
+  "authorUrl": "https://github.com/kennethlaw325",
+  "isDesktopOnly": true
+}

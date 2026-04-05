@@ -1,0 +1,16 @@
+.vaultmind-score h3 {
+  margin-bottom: 8px;
+}
+
+.vaultmind-score table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+.vaultmind-score th,
+.vaultmind-score td {
+  padding: 4px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
