@@ -7,20 +7,26 @@ import { detectStaleNotes } from "./core/staleness-checker";
 import { detectMissingOverviews } from "./core/overview-checker";
 import { calculateHealthScore } from "./core/health-scorer";
 import { ResultsModal } from "./ui/results-modal";
+import { VaultMindSettingTab } from "./settings";
 
 export default class VaultMindPlugin extends Plugin {
   settings: VaultMindSettings = DEFAULT_SETTINGS;
   private statusBarEl: HTMLElement | null = null;
   private lastIssues: LintIssue[] = [];
   private lastScore: HealthScore | null = null;
+  private hasAutoScanned = false;
 
   async onload() {
     await this.loadSettings();
+
+    // Settings tab
+    this.addSettingTab(new VaultMindSettingTab(this.app, this));
 
     // Status bar
     if (this.settings.showStatusBar) {
       this.statusBarEl = this.addStatusBarItem();
       this.statusBarEl.setText("VaultMind: ready");
+      this.statusBarEl.addClass("mod-clickable");
       this.statusBarEl.addEventListener("click", () => {
         if (this.lastIssues.length > 0 || this.lastScore) {
           new ResultsModal(this.app, this.lastIssues, this.lastScore).open();
@@ -49,13 +55,21 @@ export default class VaultMindPlugin extends Plugin {
       },
     });
 
-    // Auto-scan on startup
+    // Auto-scan on startup (once only)
     if (this.settings.autoScanOnStartup) {
-      // Wait for metadata cache to resolve
       this.app.workspace.onLayoutReady(() => {
-        this.app.metadataCache.on("resolved", () => {
-          this.runLint();
-        });
+        const handler = () => {
+          if (!this.hasAutoScanned) {
+            this.hasAutoScanned = true;
+            this.runLint();
+          }
+        };
+        // If metadata cache is already resolved, run immediately
+        if ((this.app.metadataCache as any).initialized) {
+          handler();
+        } else {
+          this.registerEvent(this.app.metadataCache.on("resolved", handler));
+        }
       });
     }
   }
@@ -77,12 +91,27 @@ export default class VaultMindPlugin extends Plugin {
         }
       );
 
+      // Auto-detect project folders if not configured
+      let projectFolders = this.settings.projectFolders;
+      if (projectFolders.length === 0) {
+        // Detect folders with 3+ notes as potential project folders
+        const folderCounts = new Map<string, number>();
+        for (const note of snapshot.notes) {
+          if (note.folderPath) {
+            folderCounts.set(note.folderPath, (folderCounts.get(note.folderPath) ?? 0) + 1);
+          }
+        }
+        projectFolders = [...folderCounts.entries()]
+          .filter(([, count]) => count >= 3)
+          .map(([folder]) => folder);
+      }
+
       // Run all lint rules
       const issues: LintIssue[] = [
         ...detectOrphans(snapshot),
         ...detectBrokenLinks(snapshot),
         ...detectStaleNotes(snapshot, this.settings.stalenessThresholdDays),
-        ...detectMissingOverviews(snapshot, this.settings.projectFolders),
+        ...detectMissingOverviews(snapshot, projectFolders),
       ];
 
       const score = calculateHealthScore(issues, snapshot.totalNotes);
@@ -92,9 +121,8 @@ export default class VaultMindPlugin extends Plugin {
 
       // Update status bar
       if (this.statusBarEl) {
-        const icon = score.total >= 90 ? "\u2705" : score.total >= 70 ? "\u26A0\uFE0F" : "\u274C";
         this.statusBarEl.setText(
-          `VaultMind: ${score.total}/100 ${icon} (${issues.length} issues)`
+          `VaultMind: ${score.total}/100 | ${issues.length} issues`
         );
       }
 
