@@ -24,6 +24,7 @@ export interface LintIssue {
   message: string;
   detail?: string;
   suggestedFix?: PendingAction;
+  offlineSuggestion?: string; // deterministic fuzzy-match or template suggestion (Phase 2b)
 }
 
 export interface PendingAction {
@@ -59,6 +60,11 @@ export interface VaultMindSettings {
   folderConfigs: FolderConfig[]; // per-folder overrides (Phase 2a)
   autoScanOnStartup: boolean;
   showStatusBar: boolean;
+  // Phase 2b — AI recommendations
+  anthropicApiKey: string;      // user-provided, stored in data.json
+  aiModel: string;               // claude-haiku-4-5-* by default
+  aiMaxIssues: number;           // cap per run to control cost
+  aiBatchSize: number;           // issues per API call
 }
 
 export const DEFAULT_FOLDER_CONFIGS: FolderConfig[] = [
@@ -78,6 +84,11 @@ export const DEFAULT_SETTINGS: VaultMindSettings = {
   folderConfigs: DEFAULT_FOLDER_CONFIGS,
   autoScanOnStartup: true,
   showStatusBar: true,
+  // Phase 2b
+  anthropicApiKey: "",
+  aiModel: "claude-haiku-4-5-20251001",
+  aiMaxIssues: 30,
+  aiBatchSize: 10,
 };
 
 /**

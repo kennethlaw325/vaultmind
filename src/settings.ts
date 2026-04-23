@@ -117,6 +117,72 @@ export class VaultMindSettingTab extends PluginSettingTab {
             this.display();
           })
       );
+
+    // === AI Recommendations (Phase 2b) ===
+    containerEl.createEl("h3", { text: "AI recommendations" });
+    containerEl.createEl("p", {
+      text:
+        "Optional: provide an Anthropic API key to generate actionable fix suggestions for broken links and missing overviews. Uses claude-haiku-4-5 by default — typical run (30 issues) costs under $0.01.",
+      cls: "setting-item-description",
+    });
+
+    new Setting(containerEl)
+      .setName("Anthropic API key")
+      .setDesc(
+        "Stored in .obsidian/plugins/obsidian-vaultmind/data.json on your machine. Starts with sk-ant-..."
+      )
+      .addText((text) => {
+        (text.inputEl as HTMLInputElement).type = "password";
+        return text
+          .setPlaceholder("sk-ant-...")
+          .setValue(this.plugin.settings.anthropicApiKey)
+          .onChange(async (value) => {
+            this.plugin.settings.anthropicApiKey = value.trim();
+            await this.plugin.saveSettings();
+          });
+      });
+
+    new Setting(containerEl)
+      .setName("Model")
+      .setDesc("Anthropic model ID. Haiku is fastest + cheapest; Sonnet gives deeper suggestions.")
+      .addText((text) =>
+        text
+          .setValue(this.plugin.settings.aiModel)
+          .onChange(async (value) => {
+            this.plugin.settings.aiModel = value.trim() || "claude-haiku-4-5-20251001";
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Max issues per run")
+      .setDesc("Cap on how many issues get AI suggestions per 'Generate' click (cost control).")
+      .addText((text) =>
+        text
+          .setValue(String(this.plugin.settings.aiMaxIssues))
+          .onChange(async (value) => {
+            const n = parseInt(value);
+            if (!isNaN(n) && n > 0) {
+              this.plugin.settings.aiMaxIssues = n;
+              await this.plugin.saveSettings();
+            }
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Batch size")
+      .setDesc("Issues per API call. Higher = fewer calls, lower = faster first result.")
+      .addText((text) =>
+        text
+          .setValue(String(this.plugin.settings.aiBatchSize))
+          .onChange(async (value) => {
+            const n = parseInt(value);
+            if (!isNaN(n) && n > 0 && n <= 50) {
+              this.plugin.settings.aiBatchSize = n;
+              await this.plugin.saveSettings();
+            }
+          })
+      );
   }
 
   private renderFolderConfigs(container: HTMLElement): void {
