@@ -84,6 +84,7 @@ export default class VaultMindPlugin extends Plugin {
     try {
       const snapshot = await adapter.buildSnapshot(
         this.settings.excludeFolders,
+        this.settings.folderConfigs ?? [],
         (done, total) => {
           if (this.statusBarEl) {
             this.statusBarEl.setText(`VaultMind: ${done}/${total}`);
@@ -110,7 +111,11 @@ export default class VaultMindPlugin extends Plugin {
       const issues: LintIssue[] = [
         ...detectOrphans(snapshot),
         ...detectBrokenLinks(snapshot),
-        ...detectStaleNotes(snapshot, this.settings.stalenessThresholdDays),
+        ...detectStaleNotes(
+          snapshot,
+          this.settings.stalenessThresholdDays,
+          this.settings.folderConfigs ?? []
+        ),
         ...detectMissingOverviews(snapshot, projectFolders),
       ];
 

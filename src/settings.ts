@@ -1,5 +1,6 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import VaultMindPlugin from "./main";
+import { FolderConfig, DEFAULT_FOLDER_CONFIGS } from "./types";
 
 export class VaultMindSettingTab extends PluginSettingTab {
   plugin: VaultMindPlugin;
@@ -14,9 +15,14 @@ export class VaultMindSettingTab extends PluginSettingTab {
     containerEl.empty();
     containerEl.createEl("h2", { text: "VaultMind Settings" });
 
+    // === Global settings ===
+    containerEl.createEl("h3", { text: "Global" });
+
     new Setting(containerEl)
       .setName("Staleness threshold (days)")
-      .setDesc("Notes not modified for this many days will be flagged as stale.")
+      .setDesc(
+        "Default: notes not modified for this many days are flagged as stale. Per-folder overrides below."
+      )
       .addText((text) =>
         text
           .setValue(String(this.plugin.settings.stalenessThresholdDays))
@@ -54,8 +60,10 @@ export class VaultMindSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Exclude folders")
-      .setDesc("Comma-separated list of folders to exclude from scanning.")
+      .setName("Exclude folders (global)")
+      .setDesc(
+        "Comma-separated list of folders to always exclude. `.obsidian` and `.trash` are implicit."
+      )
       .addText((text) =>
         text
           .setValue(this.plugin.settings.excludeFolders.join(", "))
@@ -67,5 +75,115 @@ export class VaultMindSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+
+    // === Per-folder configs ===
+    containerEl.createEl("h3", { text: "Per-folder overrides" });
+    containerEl.createEl("p", {
+      text:
+        "Each row controls one folder prefix. `Exclude` skips scanning entirely. " +
+        "`Stale check` toggles the staleness rule. `Stale days` overrides the global threshold (0 = use global).",
+      cls: "setting-item-description",
+    });
+
+    if (!this.plugin.settings.folderConfigs) {
+      this.plugin.settings.folderConfigs = [];
+    }
+
+    const listEl = containerEl.createDiv({ cls: "vaultmind-folder-configs" });
+    this.renderFolderConfigs(listEl);
+
+    new Setting(containerEl)
+      .addButton((btn) =>
+        btn
+          .setButtonText("Add folder rule")
+          .onClick(async () => {
+            this.plugin.settings.folderConfigs.push({
+              pattern: "",
+              exclude: false,
+              staleCheckEnabled: true,
+              staleDays: 0,
+            });
+            await this.plugin.saveSettings();
+            this.display();
+          })
+      )
+      .addButton((btn) =>
+        btn
+          .setButtonText("Reset to defaults")
+          .setWarning()
+          .onClick(async () => {
+            this.plugin.settings.folderConfigs = [...DEFAULT_FOLDER_CONFIGS];
+            await this.plugin.saveSettings();
+            this.display();
+          })
+      );
+  }
+
+  private renderFolderConfigs(container: HTMLElement): void {
+    container.empty();
+    const configs = this.plugin.settings.folderConfigs;
+    if (configs.length === 0) {
+      container.createEl("p", {
+        text: "No folder rules configured. Click 'Add folder rule' or 'Reset to defaults'.",
+        cls: "setting-item-description",
+      });
+      return;
+    }
+
+    configs.forEach((cfg, index) => {
+      const row = new Setting(container).setName(cfg.pattern || "(empty pattern)");
+
+      row.addText((text) =>
+        text
+          .setPlaceholder("Folder path, e.g. 10 - Projects")
+          .setValue(cfg.pattern)
+          .onChange(async (value) => {
+            cfg.pattern = value.trim();
+            await this.plugin.saveSettings();
+          })
+      );
+
+      row.addToggle((toggle) =>
+        toggle
+          .setTooltip("Exclude — skip folder entirely")
+          .setValue(cfg.exclude)
+          .onChange(async (value) => {
+            cfg.exclude = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+      row.addToggle((toggle) =>
+        toggle
+          .setTooltip("Stale check — flag old notes")
+          .setValue(cfg.staleCheckEnabled)
+          .onChange(async (value) => {
+            cfg.staleCheckEnabled = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+      row.addText((text) =>
+        text
+          .setPlaceholder("days")
+          .setValue(String(cfg.staleDays))
+          .onChange(async (value) => {
+            const n = parseInt(value);
+            cfg.staleDays = isNaN(n) || n < 0 ? 0 : n;
+            await this.plugin.saveSettings();
+          })
+      );
+
+      row.addExtraButton((btn) =>
+        btn
+          .setIcon("trash")
+          .setTooltip("Remove this rule")
+          .onClick(async () => {
+            configs.splice(index, 1);
+            await this.plugin.saveSettings();
+            this.display();
+          })
+      );
+    });
   }
 }

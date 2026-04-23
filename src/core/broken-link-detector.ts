@@ -8,7 +8,7 @@ export function detectBrokenLinks(snapshot: VaultSnapshot): LintIssue[] {
       issues.push({
         id: `broken-${note.path}-${unresolvedLink}`,
         type: "broken-link",
-        severity: "error",
+        severity: "critical",
         notePath: note.path,
         message: `Broken link: [[${unresolvedLink}]]`,
         detail: `"${note.name}" links to "${unresolvedLink}" which does not exist.`,
