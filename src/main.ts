@@ -1,11 +1,12 @@
 import { Plugin, Notice } from "obsidian";
-import { VaultMindSettings, DEFAULT_SETTINGS, LintIssue, HealthScore } from "./types";
+import { VaultMindSettings, DEFAULT_SETTINGS, LintIssue, HealthScore, VaultSnapshot } from "./types";
 import { VaultAdapter } from "./adapters/vault-adapter";
 import { detectOrphans } from "./core/orphan-detector";
 import { detectBrokenLinks } from "./core/broken-link-detector";
 import { detectStaleNotes } from "./core/staleness-checker";
 import { detectMissingOverviews } from "./core/overview-checker";
 import { calculateHealthScore } from "./core/health-scorer";
+import { findBestMatches, suggestOverviewTemplate } from "./core/fuzzy-matcher";
 import { ResultsModal } from "./ui/results-modal";
 import { VaultMindSettingTab } from "./settings";
 
@@ -14,6 +15,7 @@ export default class VaultMindPlugin extends Plugin {
   private statusBarEl: HTMLElement | null = null;
   private lastIssues: LintIssue[] = [];
   private lastScore: HealthScore | null = null;
+  private lastSnapshot: VaultSnapshot | null = null;
   private hasAutoScanned = false;
 
   async onload() {
@@ -29,7 +31,7 @@ export default class VaultMindPlugin extends Plugin {
       this.statusBarEl.addClass("mod-clickable");
       this.statusBarEl.addEventListener("click", () => {
         if (this.lastIssues.length > 0 || this.lastScore) {
-          new ResultsModal(this.app, this.lastIssues, this.lastScore).open();
+          new ResultsModal(this.app, this.lastIssues, this.lastScore, this.settings).open();
         } else {
           new Notice("Run VaultMind: Lint first");
         }
@@ -48,7 +50,7 @@ export default class VaultMindPlugin extends Plugin {
       name: "Show Results",
       callback: () => {
         if (this.lastIssues.length > 0 || this.lastScore) {
-          new ResultsModal(this.app, this.lastIssues, this.lastScore).open();
+          new ResultsModal(this.app, this.lastIssues, this.lastScore, this.settings).open();
         } else {
           new Notice("No results yet. Run VaultMind: Lint first.");
         }
@@ -84,6 +86,7 @@ export default class VaultMindPlugin extends Plugin {
     try {
       const snapshot = await adapter.buildSnapshot(
         this.settings.excludeFolders,
+        this.settings.folderConfigs ?? [],
         (done, total) => {
           if (this.statusBarEl) {
             this.statusBarEl.setText(`VaultMind: ${done}/${total}`);
@@ -110,14 +113,22 @@ export default class VaultMindPlugin extends Plugin {
       const issues: LintIssue[] = [
         ...detectOrphans(snapshot),
         ...detectBrokenLinks(snapshot),
-        ...detectStaleNotes(snapshot, this.settings.stalenessThresholdDays),
+        ...detectStaleNotes(
+          snapshot,
+          this.settings.stalenessThresholdDays,
+          this.settings.folderConfigs ?? []
+        ),
         ...detectMissingOverviews(snapshot, projectFolders),
       ];
 
       const score = calculateHealthScore(issues, snapshot.totalNotes);
 
+      // Phase 2b offline: attach deterministic suggestions via fuzzy matching.
+      this.attachOfflineSuggestions(issues, snapshot);
+
       this.lastIssues = issues;
       this.lastScore = score;
+      this.lastSnapshot = snapshot;
 
       // Update status bar
       if (this.statusBarEl) {
@@ -135,6 +146,32 @@ export default class VaultMindPlugin extends Plugin {
       new Notice("VaultMind: Scan failed. Check console.");
       if (this.statusBarEl) {
         this.statusBarEl.setText("VaultMind: error");
+      }
+    }
+  }
+
+  /**
+   * Enrich issues with offline fuzzy-match suggestions (no API call).
+   * Broken links get "Did you mean..." top 3 candidates.
+   * Missing overviews get a template ready to paste.
+   */
+  private attachOfflineSuggestions(issues: LintIssue[], snapshot: VaultSnapshot) {
+    for (const issue of issues) {
+      if (issue.type === "broken-link") {
+        // Extract target from message "Broken link: [[target]]"
+        const match = issue.message.match(/\[\[(.+?)\]\]/);
+        if (!match) continue;
+        const target = match[1];
+        const candidates = findBestMatches(target, snapshot, 3, 0.4);
+        if (candidates.length > 0) {
+          const lines = candidates.map(
+            (c) => `  • [[${c.candidate.name}]] (${Math.round(c.score * 100)}% match)`
+          );
+          (issue as any).offlineSuggestion = `Did you mean:\n${lines.join("\n")}`;
+        }
+      } else if (issue.type === "missing-overview") {
+        const { suggestion } = suggestOverviewTemplate(issue.notePath, snapshot, 5);
+        (issue as any).offlineSuggestion = suggestion;
       }
     }
   }

@@ -1,19 +1,32 @@
-import { App, TFile, MetadataCache } from "obsidian";
-import { NoteMetadata, VaultSnapshot } from "../types";
+import { App, TFile } from "obsidian";
+import { NoteMetadata, VaultSnapshot, FolderConfig, findFolderConfig } from "../types";
 
 export class VaultAdapter {
   constructor(private app: App) {}
 
   async buildSnapshot(
     excludeFolders: string[],
+    folderConfigs: FolderConfig[] = [],
     onProgress?: (done: number, total: number) => void
   ): Promise<VaultSnapshot> {
     const startTime = Date.now();
+
     const files = this.app.vault
       .getMarkdownFiles()
-      .filter(
-        (f) => !excludeFolders.some((ex) => f.path.startsWith(ex + "/") || f.path.startsWith(ex))
-      );
+      .filter((f) => {
+        // Legacy excludeFolders list
+        if (
+          excludeFolders.some(
+            (ex) => f.path.startsWith(ex + "/") || f.path.startsWith(ex)
+          )
+        ) {
+          return false;
+        }
+        // Folder configs with exclude: true
+        const cfg = findFolderConfig(f.path, folderConfigs);
+        if (cfg?.exclude) return false;
+        return true;
+      });
 
     const notes: NoteMetadata[] = [];
     const chunkSize = 200;
