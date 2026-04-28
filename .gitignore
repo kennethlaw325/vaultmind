@@ -1,3 +1,7 @@
+# Plugin-specific
+test-vault/
+graphify-out/
+
 # Logs
 logs
 *.log
