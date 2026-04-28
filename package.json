@@ -1,6 +1,6 @@
 {
-  "name": "obsidian-vaultmind",
-  "version": "0.2.0",
+  "name": "vaultmind",
+  "version": "0.2.1",
   "description": "Vault health checker for Obsidian",
   "main": "main.js",
   "scripts": {

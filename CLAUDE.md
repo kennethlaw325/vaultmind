@@ -27,7 +27,7 @@ npm test             # Run Jest tests
 ```
 
 ## Testing
-- Copy `main.js` + `manifest.json` + `styles.css` to vault's `.obsidian/plugins/obsidian-vaultmind/`
+- Copy `main.js` + `manifest.json` + `styles.css` to vault's `.obsidian/plugins/vaultmind/`
 - Reload Obsidian (Ctrl+R)
 - Enable plugin in Settings > Community Plugins
 

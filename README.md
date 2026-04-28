@@ -31,7 +31,7 @@ Click any issue to jump directly to the source note.
 ### Manual (until Community Plugins listing is approved)
 
 1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/kennethlaw325/vaultmind/releases/latest).
-2. Copy the three files into your vault's `.obsidian/plugins/obsidian-vaultmind/` folder (create the folder if it doesn't exist).
+2. Copy the three files into your vault's `.obsidian/plugins/vaultmind/` folder (create the folder if it doesn't exist).
 3. In Obsidian: **Settings → Community plugins → Reload installed plugins**.
 4. Enable **VaultMind** in the Installed plugins list.
 

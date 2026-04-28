@@ -129,7 +129,7 @@ export class VaultMindSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Anthropic API key")
       .setDesc(
-        "Stored in .obsidian/plugins/obsidian-vaultmind/data.json on your machine. Starts with sk-ant-..."
+        "Stored in .obsidian/plugins/vaultmind/data.json on your machine. Starts with sk-ant-..."
       )
       .addText((text) => {
         (text.inputEl as HTMLInputElement).type = "password";
