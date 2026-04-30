@@ -41,11 +41,52 @@ function normalize(s: string): string {
   return s.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
+// CJK ranges: CJK Unified Ideographs (4E00-9FFF), Extension A (3400-4DBF),
+// Hiragana / Katakana (3040-30FF), Hangul Syllables (AC00-D7AF). Detection only —
+// the bigram fallback works for any whitespace-less script.
+const CJK_RE = /[一-鿿㐀-䶿぀-ヿ가-힯]/;
+
+function hasCJK(s: string): boolean {
+  return CJK_RE.test(s);
+}
+
+/**
+ * Character-bigram set for whitespace-less strings. Falls back to the single
+ * char when the input has only one char.
+ */
+function bigramSet(s: string): Set<string> {
+  const out = new Set<string>();
+  const compact = normalize(s).replace(/\s+/g, "");
+  if (compact.length === 0) return out;
+  if (compact.length === 1) {
+    out.add(compact);
+    return out;
+  }
+  for (let i = 0; i < compact.length - 1; i++) {
+    out.add(compact.slice(i, i + 2));
+  }
+  return out;
+}
+
 /**
  * Token overlap ratio — how many tokens in target also appear in candidate.
  * Returns 0..1.
+ *
+ * For CJK / whitespace-less inputs the regular split-on-whitespace tokenizer
+ * collapses each name into a single token and overlap drops to 0 even for
+ * near-identical names (e.g. "業配腳本研究" vs "業配腳本框架"). When either
+ * side contains CJK, fall back to character-bigram overlap which captures
+ * substring similarity without requiring word boundaries.
  */
 function tokenOverlap(target: string, candidate: string): number {
+  if (hasCJK(target) || hasCJK(candidate)) {
+    const ba = bigramSet(target);
+    const bb = bigramSet(candidate);
+    if (ba.size === 0) return 0;
+    let overlap = 0;
+    for (const g of ba) if (bb.has(g)) overlap++;
+    return overlap / ba.size;
+  }
   const ta = new Set(normalize(target).split(/[\s\-_]+/).filter((t) => t.length > 0));
   const tb = new Set(normalize(candidate).split(/[\s\-_]+/).filter((t) => t.length > 0));
   if (ta.size === 0) return 0;
