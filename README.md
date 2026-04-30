@@ -88,6 +88,21 @@ If you want richer suggestions than the built-in fuzzy matcher, drop your [Anthr
 
 ---
 
+## Real Vault Test
+
+Validated on a 700+ note personal Obsidian vault between v0.1.0 and v0.2.0:
+
+| Metric | v0.1.0 | v0.2.0 |
+|---|---:|---:|
+| Health score | 20/100 | **46/100** |
+| Total issues | 615 | **231** |
+
+**20 → 46/100 health score on 615 → 231 issues** after the v0.2.0 changes (per-folder rules, softer staleness penalty, raised global threshold to 60 days). Issue reduction is driven mostly by excluding auto-generated Daily Reviews and Archive folders from staleness checks, where they previously created false-positive noise.
+
+See [`examples/`](examples/) for three sanitized mini-vaults that each demonstrate one lint rule in isolation.
+
+---
+
 ## Architecture
 
 - `src/core/` — pure TypeScript lint logic, zero Obsidian dependency. Jest-testable.
