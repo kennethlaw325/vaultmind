@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  VaultMind OG image — 1200x630 (Open Graph spec).
+  Brand: VaultMind has no formal brand kit yet. TechPulse's amber/black is intentionally
+  not reused — this plugin gets its own visual identity (deep navy + violet accent +
+  off-white text, inspired by Obsidian's purple-leaning palette without copying it).
+
+  Render to PNG with:
+    npx sharp-cli -i og-image.svg -o og-image.png
+  or
+    rsvg-convert og-image.svg -o og-image.png
+  or
+    Inkscape:  inkscape og-image.svg --export-type=png --export-filename=og-image.png
+
+  Final raster MUST be 1200x630 to satisfy OG / Twitter card requirements.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <!-- Background gradient: deep navy -> violet -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F1024"/>
+      <stop offset="60%" stop-color="#1A1340"/>
+      <stop offset="100%" stop-color="#2A1A5E"/>
+    </linearGradient>
+    <linearGradient id="badge" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7C5CFF"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7C5CFF" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#7C5CFF" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#FFFFFF" stroke-opacity="0.04" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+
+  <!-- Soft glow behind score -->
+  <circle cx="960" cy="315" r="260" fill="url(#glow)"/>
+
+  <!-- Left content block -->
+  <g transform="translate(80, 100)">
+    <!-- Eyebrow / category -->
+    <text x="0" y="0" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="16" font-weight="600"
+          fill="#A78BFA" letter-spacing="4" >OBSIDIAN PLUGIN · v0.2.1</text>
+
+    <!-- Wordmark -->
+    <text x="0" y="76" font-family="ui-sans-serif, system-ui, sans-serif" font-size="84" font-weight="800"
+          fill="#F5F3FF" letter-spacing="-2">VaultMind</text>
+
+    <!-- Tagline -->
+    <text x="0" y="148" font-family="ui-sans-serif, system-ui, sans-serif" font-size="32" font-weight="500"
+          fill="#D4CCFF">Vault health checker for Obsidian.</text>
+
+    <!-- Sub bullets -->
+    <g font-family="ui-sans-serif, system-ui, sans-serif" font-size="22" fill="#B5ACE0" font-weight="400">
+      <text x="0" y="220">· Orphan notes  · Broken links  · Stale notes  · Missing overviews</text>
+      <text x="0" y="262">· Offline fuzzy suggestions  · Optional AI recommendations</text>
+      <text x="0" y="304">· Per-folder rules  · Zero config to start</text>
+    </g>
+
+    <!-- Stat bar -->
+    <g transform="translate(0, 360)">
+      <rect x="0" y="0" width="540" height="84" rx="10" fill="#1B1538" stroke="#2E2660" stroke-width="1"/>
+      <text x="20" y="32" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="13" font-weight="600"
+            fill="#A78BFA" letter-spacing="2">REAL VAULT TEST · 700+ NOTES</text>
+      <text x="20" y="68" font-family="ui-sans-serif, system-ui, sans-serif" font-size="22" font-weight="700"
+            fill="#F5F3FF">20 → 46/100 health score   ·   615 → 231 issues</text>
+    </g>
+  </g>
+
+  <!-- Right side: score badge mock -->
+  <g transform="translate(820, 175)">
+    <!-- Outer ring -->
+    <circle cx="140" cy="140" r="135" fill="none" stroke="#2E2660" stroke-width="14"/>
+    <!-- Progress arc — 46/100 = 46% of 360deg = 165.6deg -->
+    <circle cx="140" cy="140" r="135" fill="none" stroke="url(#badge)" stroke-width="14"
+            stroke-linecap="round" stroke-dasharray="390 848" transform="rotate(-90 140 140)"/>
+    <!-- Score number -->
+    <text x="140" y="148" font-family="ui-sans-serif, system-ui, sans-serif" font-size="92" font-weight="800"
+          fill="#F5F3FF" text-anchor="middle">46</text>
+    <text x="140" y="186" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="14" font-weight="600"
+          fill="#A78BFA" text-anchor="middle" letter-spacing="3">/ 100  HEALTH</text>
+
+    <!-- Dimension chips -->
+    <g transform="translate(-30, 320)" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="12"
+       font-weight="600" letter-spacing="1.5">
+      <g>
+        <rect x="0" y="0" width="160" height="32" rx="16" fill="#1B1538" stroke="#3A2E80"/>
+        <text x="80" y="21" fill="#D4CCFF" text-anchor="middle">CONSISTENCY  18/25</text>
+      </g>
+      <g transform="translate(180, 0)">
+        <rect x="0" y="0" width="160" height="32" rx="16" fill="#1B1538" stroke="#3A2E80"/>
+        <text x="80" y="21" fill="#D4CCFF" text-anchor="middle">CONNECTIVITY  6/25</text>
+      </g>
+      <g transform="translate(0, 44)">
+        <rect x="0" y="0" width="160" height="32" rx="16" fill="#1B1538" stroke="#3A2E80"/>
+        <text x="80" y="21" fill="#D4CCFF" text-anchor="middle">FRESHNESS  22/25</text>
+      </g>
+      <g transform="translate(180, 44)">
+        <rect x="0" y="0" width="160" height="32" rx="16" fill="#1B1538" stroke="#3A2E80"/>
+        <text x="80" y="21" fill="#D4CCFF" text-anchor="middle">COMPLETENESS  0/25</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Footer URL -->
+  <text x="80" y="590" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="14" font-weight="500"
+        fill="#8077B0" letter-spacing="2">github.com/kennethlaw325/vaultmind</text>
+</svg>

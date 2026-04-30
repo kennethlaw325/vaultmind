@@ -5,6 +5,20 @@ All notable changes to VaultMind will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2-prep] - 2026-04-30 polish: examples + asset prep + visual blockers documented
+
+### Added
+- `examples/` folder with three sanitized mini-vaults (`orphan-rule/`, `staleness-rule/`, `missing-overview/`), each with a README showing input + expected lint output.
+- `promo/og-image/` — 1200×630 SVG mock for landing-page Open Graph card with VaultMind-specific palette (deep navy + violet, distinct from TechPulse). Render instructions included.
+- `promo/visual-asset-blockers.md` — capture spec for the 4 manual screenshots Obsidian's Electron app forces us to take by hand (settings tab, status bar, results modal, score badge), with paths, dimensions, and theme recommendations.
+
+### Changed
+- README "Real Vault Test" section added with the verified `20 → 46/100 health score on 615 → 231 issues` numbers, plus a pointer to `examples/`.
+
+### Notes
+- Version field in `manifest.json` / `package.json` intentionally **not** bumped — waiting for v0.2.1 community-plugins PR (#12375) to be approved + merged before cutting v0.2.2.
+- No new features. Polish-only PR.
+
 ## [0.2.0] — 2026-04-23
 
 ### Added
