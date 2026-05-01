@@ -1,4 +1,4 @@
-import { NoteMetadata, VaultSnapshot, LintIssue } from "../types";
+import { VaultSnapshot, LintIssue } from "../types";
 
 export function detectOrphans(snapshot: VaultSnapshot): LintIssue[] {
   const inboundCount = new Map<string, number>();

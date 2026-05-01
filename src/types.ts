@@ -80,7 +80,10 @@ export const DEFAULT_FOLDER_CONFIGS: FolderConfig[] = [
 export const DEFAULT_SETTINGS: VaultMindSettings = {
   stalenessThresholdDays: 60, // raised from 14 to 60 (more realistic for knowledge vault)
   projectFolders: [],
-  excludeFolders: [".obsidian", ".trash"],
+  // `.trash` is the conventional Obsidian trash folder. The plugin's own
+  // configuration directory (typically `.obsidian` but user-configurable via
+  // `Vault#configDir`) is added at scan time in `main.ts`.
+  excludeFolders: [".trash"],
   folderConfigs: DEFAULT_FOLDER_CONFIGS,
   autoScanOnStartup: true,
   showStatusBar: true,

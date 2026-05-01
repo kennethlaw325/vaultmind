@@ -14,3 +14,41 @@
   text-align: left;
   border-bottom: 1px solid var(--background-modifier-border);
 }
+
+/* Inline offline (fuzzy-match / template) suggestion under each issue */
+.vaultmind-suggestion {
+  margin-left: 1em;
+  margin-top: 4px;
+  font-size: 0.85em;
+  color: var(--text-accent);
+  white-space: pre-wrap;
+  padding: 4px 8px;
+  background: var(--background-secondary);
+  border-radius: 4px;
+}
+
+/* AI-generated suggestion (sits below the offline one) */
+.vaultmind-ai-suggestion {
+  margin-left: 1em;
+  font-size: 0.9em;
+  color: var(--text-success);
+}
+
+/* AI controls block at the top of the results modal */
+.vaultmind-ai-box {
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 5px;
+}
+
+.vaultmind-ai-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.vaultmind-ai-status {
+  margin-left: 12px;
+  font-size: 0.9em;
+}

@@ -1,3 +1,4 @@
+import { requestUrl } from "obsidian";
 import { LintIssue } from "../types";
 
 export interface Recommendation {
@@ -66,17 +67,21 @@ Return only the JSON array, no other text.`;
 }
 
 /**
- * Call Anthropic Messages API with fetch() (no SDK, per CLAUDE.md rule).
+ * Call Anthropic Messages API via Obsidian's requestUrl helper.
+ * requestUrl is required by the Obsidian plugin guidelines instead of fetch
+ * (browser fetch is blocked from cross-origin to api.anthropic.com from inside
+ * the renderer; requestUrl proxies through the Electron main process).
  */
 async function callAnthropicAPI(
   prompt: string,
   apiKey: string,
   model: string
 ): Promise<{ text: string; inputTokens: number; outputTokens: number }> {
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
+  const response = await requestUrl({
+    url: "https://api.anthropic.com/v1/messages",
     method: "POST",
+    contentType: "application/json",
     headers: {
-      "Content-Type": "application/json",
       "x-api-key": apiKey,
       "anthropic-version": "2023-06-01",
     },
@@ -85,17 +90,18 @@ async function callAnthropicAPI(
       max_tokens: 1024,
       messages: [{ role: "user", content: prompt }],
     }),
+    throw: false,
   });
 
-  if (!response.ok) {
-    const errText = await response.text();
+  if (response.status < 200 || response.status >= 300) {
+    const errText = response.text ?? "";
     throw new Error(`Anthropic API ${response.status}: ${errText.slice(0, 200)}`);
   }
 
-  const data = await response.json();
-  const text = data.content?.[0]?.text ?? "";
-  const inputTokens = data.usage?.input_tokens ?? 0;
-  const outputTokens = data.usage?.output_tokens ?? 0;
+  const data = response.json;
+  const text = data?.content?.[0]?.text ?? "";
+  const inputTokens = data?.usage?.input_tokens ?? 0;
+  const outputTokens = data?.usage?.output_tokens ?? 0;
   return { text, inputTokens, outputTokens };
 }
 
