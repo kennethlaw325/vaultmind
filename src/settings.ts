@@ -49,7 +49,7 @@ export class VaultMindSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Show status bar")
-      .setDesc("Show VaultMind health score in the status bar.")
+      .setDesc("Show health score in the status bar.")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.showStatusBar)
@@ -122,19 +122,19 @@ export class VaultMindSettingTab extends PluginSettingTab {
     new Setting(containerEl).setName("AI recommendations").setHeading();
     containerEl.createEl("p", {
       text:
-        "Optional: provide an Anthropic API key to generate actionable fix suggestions for broken links and missing overviews. Uses claude-haiku-4-5 by default — typical run (30 issues) costs under $0.01.",
+        "Provide an Anthropic API key to generate actionable fix suggestions for broken links and missing overviews. A typical run of 30 issues costs under $0.01.",
       cls: "setting-item-description",
     });
 
     new Setting(containerEl)
       .setName("Anthropic API key")
       .setDesc(
-        `Stored in ${configDir}/plugins/vaultmind/data.json on your machine. Starts with sk-ant-...`
+        `Stored in ${configDir}/plugins/vaultmind/data.json on your machine. Keys start with sk-ant-...`
       )
       .addText((text) => {
         text.inputEl.type = "password";
         return text
-          .setPlaceholder("sk-ant-...")
+          .setPlaceholder("Sk-ant-...")
           .setValue(this.plugin.settings.anthropicApiKey)
           .onChange(async (value) => {
             this.plugin.settings.anthropicApiKey = value.trim();
@@ -144,7 +144,7 @@ export class VaultMindSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Model")
-      .setDesc("Anthropic model ID. Haiku is fastest + cheapest; Sonnet gives deeper suggestions.")
+      .setDesc("Anthropic model identifier. The default is tuned for speed and low cost.")
       .addText((text) =>
         text
           .setValue(this.plugin.settings.aiModel)
@@ -156,7 +156,7 @@ export class VaultMindSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Max issues per run")
-      .setDesc("Cap on how many issues get AI suggestions per 'Generate' click (cost control).")
+      .setDesc("Cap on how many issues get AI suggestions per generate click (cost control).")
       .addText((text) =>
         text
           .setValue(String(this.plugin.settings.aiMaxIssues))
@@ -190,7 +190,7 @@ export class VaultMindSettingTab extends PluginSettingTab {
     const configs = this.plugin.settings.folderConfigs;
     if (configs.length === 0) {
       container.createEl("p", {
-        text: "No folder rules configured. Click 'Add folder rule' or 'Reset to defaults'.",
+        text: "No folder rules configured. Use the buttons below to add a rule or reset to defaults.",
         cls: "setting-item-description",
       });
       return;
@@ -201,7 +201,7 @@ export class VaultMindSettingTab extends PluginSettingTab {
 
       row.addText((text) =>
         text
-          .setPlaceholder("Folder path, e.g. 10 - Projects")
+          .setPlaceholder("Folder path, e.g. 10 - projects")
           .setValue(cfg.pattern)
           .onChange(async (value) => {
             cfg.pattern = value.trim();
@@ -231,7 +231,7 @@ export class VaultMindSettingTab extends PluginSettingTab {
 
       row.addText((text) =>
         text
-          .setPlaceholder("days")
+          .setPlaceholder("Days")
           .setValue(String(cfg.staleDays))
           .onChange(async (value) => {
             const n = parseInt(value);
