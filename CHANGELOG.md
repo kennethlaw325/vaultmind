@@ -5,6 +5,26 @@ All notable changes to VaultMind will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2-prep] - 2026-05-01 fuzzy-matcher CJK bigram fallback
+
+### Fixed
+- **Broken-link suggestions on CJK note names.** The whitespace-token overlap
+  in `tokenOverlap()` collapsed Chinese / Japanese / Korean names into a
+  single token, dropping near-duplicate names below the `minScore` cutoff
+  (e.g. `業配腳本研究` vs `業配腳本框架` would not match). Added a
+  character-bigram fallback that triggers when either side contains CJK,
+  so substring similarity gets captured without word boundaries.
+- 6 new tests in `__tests__/fuzzy-matcher.test.ts` covering pure-CJK match,
+  bigram ranking, no-spurious-match guard, mixed CJK+Latin prefix,
+  Latin-only regression, and single-char edge case. Latin-only paths are
+  unchanged.
+
+### Test count
+67 → **73** (+6).
+
+### Bundle
+20.3 KB → 20.7 KB.
+
 ## [0.2.0] — 2026-04-23
 
 ### Added
