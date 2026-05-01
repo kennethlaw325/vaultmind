@@ -27,7 +27,7 @@ export class ResultsModal extends Modal {
     contentEl.empty();
 
     // Header — Obsidian renders this as the modal title
-    this.titleEl?.setText("VaultMind results");
+    this.titleEl?.setText("Results");
 
     // Health score
     if (this.score) {
@@ -101,7 +101,7 @@ export class ResultsModal extends Modal {
         });
         link.addEventListener("click", (e) => {
           e.preventDefault();
-          this.app.workspace.openLinkText(issue.notePath, "", false);
+          void this.app.workspace.openLinkText(issue.notePath, "", false);
           this.close();
         });
         // Inline offline (fuzzy-match / template) suggestion — no API needed
@@ -165,11 +165,11 @@ export class ResultsModal extends Modal {
   private async runRecommendations(statusEl: HTMLElement) {
     const s = this.settings;
     if (!s?.anthropicApiKey) {
-      new Notice("VaultMind: API key missing");
+      new Notice("API key missing");
       return;
     }
 
-    statusEl.setText("Calling Anthropic API...");
+    statusEl.setText("Generating suggestions...");
     try {
       const { recommendations, stats } = await generateRecommendations(
         this.issues,
@@ -188,7 +188,7 @@ export class ResultsModal extends Modal {
         `Done. ${recommendations.length}/${stats.issuesProcessed} suggestions. Cost $${stats.estimatedCostUSD.toFixed(4)} (${stats.batchesCalled} calls).`
       );
       new Notice(
-        `VaultMind AI: ${recommendations.length} suggestions generated ($${stats.estimatedCostUSD.toFixed(4)})`
+        `Generated ${recommendations.length} AI suggestions for $${stats.estimatedCostUSD.toFixed(4)}`
       );
       // Re-render to show suggestions inline
       this.render();
@@ -196,7 +196,7 @@ export class ResultsModal extends Modal {
       console.error("VaultMind AI error:", err);
       const message = err instanceof Error ? err.message : String(err);
       statusEl.setText(`Error: ${message}`);
-      new Notice("VaultMind AI: failed — see console for details");
+      new Notice("AI suggestions failed, see console for details");
     }
   }
 

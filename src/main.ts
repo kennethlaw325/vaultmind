@@ -34,13 +34,13 @@ export default class VaultMindPlugin extends Plugin {
     // Status bar
     if (this.settings.showStatusBar) {
       this.statusBarEl = this.addStatusBarItem();
-      this.statusBarEl.setText("VaultMind: ready");
+      this.statusBarEl.setText("Ready");
       this.statusBarEl.addClass("mod-clickable");
       this.statusBarEl.addEventListener("click", () => {
         if (this.lastIssues.length > 0 || this.lastScore) {
           new ResultsModal(this.app, this.lastIssues, this.lastScore, this.settings).open();
         } else {
-          new Notice("Run VaultMind: lint first");
+          new Notice("Run lint first");
         }
       });
     }
@@ -61,7 +61,7 @@ export default class VaultMindPlugin extends Plugin {
         if (this.lastIssues.length > 0 || this.lastScore) {
           new ResultsModal(this.app, this.lastIssues, this.lastScore, this.settings).open();
         } else {
-          new Notice("No results yet. Run VaultMind: lint first.");
+          new Notice("No results yet. Run lint first.");
         }
       },
     });
@@ -90,7 +90,7 @@ export default class VaultMindPlugin extends Plugin {
     const adapter = new VaultAdapter(this.app);
 
     if (this.statusBarEl) {
-      this.statusBarEl.setText("VaultMind: scanning...");
+      this.statusBarEl.setText("Scanning...");
     }
 
     try {
@@ -105,7 +105,7 @@ export default class VaultMindPlugin extends Plugin {
         this.settings.folderConfigs ?? [],
         (done, total) => {
           if (this.statusBarEl) {
-            this.statusBarEl.setText(`VaultMind: ${done}/${total}`);
+            this.statusBarEl.setText(`Scanning ${done}/${total}`);
           }
         }
       );
@@ -149,19 +149,19 @@ export default class VaultMindPlugin extends Plugin {
       // Update status bar
       if (this.statusBarEl) {
         this.statusBarEl.setText(
-          `VaultMind: ${score.total}/100 | ${issues.length} issues`
+          `${score.total}/100 (${issues.length} issues)`
         );
       }
 
       // Show notice
       new Notice(
-        `VaultMind: ${score.total}/100 — ${issues.length} issues found (${snapshot.scanTime}ms)`
+        `Score ${score.total}/100, ${issues.length} issues found in ${snapshot.scanTime}ms`
       );
     } catch (err) {
       console.error("VaultMind lint error:", err);
-      new Notice("VaultMind: scan failed. Check console.");
+      new Notice("Scan failed. Check console.");
       if (this.statusBarEl) {
-        this.statusBarEl.setText("VaultMind: error");
+        this.statusBarEl.setText("Error");
       }
     }
   }
