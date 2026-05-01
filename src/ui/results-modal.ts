@@ -1,7 +1,6 @@
-import { App, Modal, Notice, ButtonComponent } from "obsidian";
+import { App, Modal, Notice, ButtonComponent, Setting } from "obsidian";
 import { LintIssue, HealthScore, VaultMindSettings } from "../types";
 import {
-  Recommendation,
   estimateCost,
   generateRecommendations,
   selectRecommendableIssues,
@@ -27,15 +26,15 @@ export class ResultsModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
 
-    // Header
-    contentEl.createEl("h2", { text: "VaultMind Results" });
+    // Header — Obsidian renders this as the modal title
+    this.titleEl?.setText("VaultMind results");
 
-    // Health Score
+    // Health score
     if (this.score) {
       const scoreEl = contentEl.createDiv({ cls: "vaultmind-score" });
-      scoreEl.createEl("h3", {
-        text: `Health Score: ${this.score.total}/100`,
-      });
+      new Setting(scoreEl)
+        .setName(`Health score: ${this.score.total}/100`)
+        .setHeading();
 
       const table = scoreEl.createEl("table");
       const header = table.createEl("tr");
@@ -69,9 +68,9 @@ export class ResultsModal extends Modal {
     // AI Recommendations controls (Phase 2b)
     this.renderAIControls(contentEl);
 
-    contentEl.createEl("h3", {
-      text: `Issues (${this.issues.length})`,
-    });
+    new Setting(contentEl)
+      .setName(`Issues (${this.issues.length})`)
+      .setHeading();
 
     const grouped = new Map<string, LintIssue[]>();
     for (const issue of this.issues) {
@@ -81,17 +80,17 @@ export class ResultsModal extends Modal {
     }
 
     const typeLabels: Record<string, string> = {
-      "broken-link": "Broken Links",
-      orphan: "Orphan Notes",
-      stale: "Stale Notes",
-      "missing-overview": "Missing Overviews",
+      "broken-link": "Broken links",
+      orphan: "Orphan notes",
+      stale: "Stale notes",
+      "missing-overview": "Missing overviews",
     };
 
     for (const [type, issues] of grouped) {
       const section = contentEl.createDiv();
-      section.createEl("h4", {
-        text: `${typeLabels[type] ?? type} (${issues.length})`,
-      });
+      new Setting(section)
+        .setName(`${typeLabels[type] ?? type} (${issues.length})`)
+        .setHeading();
 
       const list = section.createEl("ul");
       for (const issue of issues.slice(0, 50)) {
@@ -108,23 +107,12 @@ export class ResultsModal extends Modal {
         // Inline offline (fuzzy-match / template) suggestion — no API needed
         if (issue.offlineSuggestion) {
           const sugEl = li.createEl("pre", { cls: "vaultmind-suggestion" });
-          sugEl.style.marginLeft = "1em";
-          sugEl.style.marginTop = "4px";
-          sugEl.style.fontSize = "0.85em";
-          sugEl.style.color = "var(--text-accent)";
-          sugEl.style.whiteSpace = "pre-wrap";
-          sugEl.style.padding = "4px 8px";
-          sugEl.style.background = "var(--background-secondary)";
-          sugEl.style.borderRadius = "4px";
           sugEl.setText(issue.offlineSuggestion);
         }
         // AI suggestion (if user ran Generate) — overrides/appends offline one
         const aiSuggestion = this.recommendations.get(issue.id);
         if (aiSuggestion) {
           const aiEl = li.createDiv({ cls: "vaultmind-ai-suggestion" });
-          aiEl.style.marginLeft = "1em";
-          aiEl.style.fontSize = "0.9em";
-          aiEl.style.color = "var(--text-success)";
           aiEl.setText("✨ AI: " + aiSuggestion);
         }
       }
@@ -142,12 +130,7 @@ export class ResultsModal extends Modal {
     if (recommendable.length === 0) return;
 
     const aiBox = containerEl.createDiv({ cls: "vaultmind-ai-box" });
-    aiBox.style.padding = "10px";
-    aiBox.style.margin = "10px 0";
-    aiBox.style.border = "1px solid var(--background-modifier-border)";
-    aiBox.style.borderRadius = "5px";
-
-    aiBox.createEl("h4", { text: "AI recommendations" });
+    new Setting(aiBox).setName("AI recommendations").setHeading();
 
     const hasKey = !!s?.anthropicApiKey;
     if (!hasKey) {
@@ -166,22 +149,16 @@ export class ResultsModal extends Modal {
       `${recommendable.length} actionable issue(s) selected. Estimated cost ${costStr} (${est.inputTokens} in + ${est.outputTokens} out tokens, ${s?.aiModel ?? "haiku"}).`
     );
 
-    const btnRow = aiBox.createDiv();
-    btnRow.style.display = "flex";
-    btnRow.style.gap = "8px";
-    btnRow.style.alignItems = "center";
-
-    const status = btnRow.createEl("span");
-    status.style.marginLeft = "12px";
-    status.style.fontSize = "0.9em";
+    const btnRow = aiBox.createDiv({ cls: "vaultmind-ai-row" });
+    const status = btnRow.createEl("span", { cls: "vaultmind-ai-status" });
 
     new ButtonComponent(btnRow)
       .setButtonText(
         this.recommendations.size > 0 ? "Regenerate" : "Generate suggestions"
       )
       .setCta()
-      .onClick(async () => {
-        await this.runRecommendations(status);
+      .onClick(() => {
+        void this.runRecommendations(status);
       });
   }
 
@@ -215,9 +192,10 @@ export class ResultsModal extends Modal {
       );
       // Re-render to show suggestions inline
       this.render();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("VaultMind AI error:", err);
-      statusEl.setText(`Error: ${err.message ?? String(err)}`);
+      const message = err instanceof Error ? err.message : String(err);
+      statusEl.setText(`Error: ${message}`);
       new Notice("VaultMind AI: failed — see console for details");
     }
   }

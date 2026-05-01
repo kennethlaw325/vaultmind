@@ -1,5 +1,12 @@
-import { Plugin, Notice } from "obsidian";
+import { MetadataCache, Plugin, Notice } from "obsidian";
 import { VaultMindSettings, DEFAULT_SETTINGS, LintIssue, HealthScore, VaultSnapshot } from "./types";
+
+/**
+ * Obsidian's `MetadataCache` flips an internal `initialized` flag once the
+ * vault has finished its first scan. The flag isn't part of the public typings,
+ * so we widen the type locally rather than reaching for `any`.
+ */
+type MetadataCacheWithInit = MetadataCache & { initialized?: boolean };
 import { VaultAdapter } from "./adapters/vault-adapter";
 import { detectOrphans } from "./core/orphan-detector";
 import { detectBrokenLinks } from "./core/broken-link-detector";
@@ -33,7 +40,7 @@ export default class VaultMindPlugin extends Plugin {
         if (this.lastIssues.length > 0 || this.lastScore) {
           new ResultsModal(this.app, this.lastIssues, this.lastScore, this.settings).open();
         } else {
-          new Notice("Run VaultMind: Lint first");
+          new Notice("Run VaultMind: lint first");
         }
       });
     }
@@ -41,18 +48,20 @@ export default class VaultMindPlugin extends Plugin {
     // Commands
     this.addCommand({
       id: "run-lint",
-      name: "Run Lint",
-      callback: () => this.runLint(),
+      name: "Run lint",
+      callback: () => {
+        void this.runLint();
+      },
     });
 
     this.addCommand({
       id: "show-results",
-      name: "Show Results",
+      name: "Show results",
       callback: () => {
         if (this.lastIssues.length > 0 || this.lastScore) {
           new ResultsModal(this.app, this.lastIssues, this.lastScore, this.settings).open();
         } else {
-          new Notice("No results yet. Run VaultMind: Lint first.");
+          new Notice("No results yet. Run VaultMind: lint first.");
         }
       },
     });
@@ -63,11 +72,12 @@ export default class VaultMindPlugin extends Plugin {
         const handler = () => {
           if (!this.hasAutoScanned) {
             this.hasAutoScanned = true;
-            this.runLint();
+            void this.runLint();
           }
         };
         // If metadata cache is already resolved, run immediately
-        if ((this.app.metadataCache as any).initialized) {
+        const metadataCache = this.app.metadataCache as MetadataCacheWithInit;
+        if (metadataCache.initialized) {
           handler();
         } else {
           this.registerEvent(this.app.metadataCache.on("resolved", handler));
@@ -84,8 +94,14 @@ export default class VaultMindPlugin extends Plugin {
     }
 
     try {
+      // Prepend the user's actual config dir (Obsidian lets users override the
+      // default `.obsidian`) so we never scan plugin / theme files.
+      const excludeFolders = [
+        this.app.vault.configDir,
+        ...this.settings.excludeFolders,
+      ];
       const snapshot = await adapter.buildSnapshot(
-        this.settings.excludeFolders,
+        excludeFolders,
         this.settings.folderConfigs ?? [],
         (done, total) => {
           if (this.statusBarEl) {
@@ -143,7 +159,7 @@ export default class VaultMindPlugin extends Plugin {
       );
     } catch (err) {
       console.error("VaultMind lint error:", err);
-      new Notice("VaultMind: Scan failed. Check console.");
+      new Notice("VaultMind: scan failed. Check console.");
       if (this.statusBarEl) {
         this.statusBarEl.setText("VaultMind: error");
       }
@@ -167,11 +183,11 @@ export default class VaultMindPlugin extends Plugin {
           const lines = candidates.map(
             (c) => `  • [[${c.candidate.name}]] (${Math.round(c.score * 100)}% match)`
           );
-          (issue as any).offlineSuggestion = `Did you mean:\n${lines.join("\n")}`;
+          issue.offlineSuggestion = `Did you mean:\n${lines.join("\n")}`;
         }
       } else if (issue.type === "missing-overview") {
         const { suggestion } = suggestOverviewTemplate(issue.notePath, snapshot, 5);
-        (issue as any).offlineSuggestion = suggestion;
+        issue.offlineSuggestion = suggestion;
       }
     }
   }

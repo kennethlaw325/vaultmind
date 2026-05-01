@@ -5,7 +5,7 @@ All notable changes to VaultMind will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.2-prep] - 2026-05-01 fuzzy-matcher CJK bigram fallback
+## [0.2.2-prep] - 2026-05-01 ObsidianReviewBot compliance + CJK fuzzy-matcher
 
 ### Fixed
 - **Broken-link suggestions on CJK note names.** The whitespace-token overlap
@@ -14,16 +14,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (e.g. `業配腳本研究` vs `業配腳本框架` would not match). Added a
   character-bigram fallback that triggers when either side contains CJK,
   so substring similarity gets captured without word boundaries.
-- 6 new tests in `__tests__/fuzzy-matcher.test.ts` covering pure-CJK match,
-  bigram ranking, no-spurious-match guard, mixed CJK+Latin prefix,
-  Latin-only regression, and single-char edge case. Latin-only paths are
-  unchanged.
 
-### Test count
-67 → **73** (+6).
+### Changed (Obsidian community-plugins guideline compliance)
+- **Network: `fetch` → `requestUrl`.** Anthropic API calls now go through
+  Obsidian's `requestUrl` so the renderer-process CORS sandbox doesn't block
+  them.
+- **UI text: sentence case.** Command names, notices, and modal titles now
+  follow Obsidian's sentence-case rule (`Run lint`, `Show results`,
+  `Broken links`, etc.).
+- **Headings: `Setting().setHeading()` API.** Replaced raw `<h2>` / `<h3>` /
+  `<h4>` `createEl` calls in the settings tab and results modal with the
+  Obsidian `Setting` heading API for consistent theming.
+- **Config dir: `Vault#configDir`.** No more hard-coded `.obsidian` literal
+  in defaults or settings copy — the user's actual config dir is read at
+  runtime and merged into `excludeFolders` in `main.ts`.
+- **Inline styles → CSS classes.** All `element.style.*` writes in the
+  results modal moved to `styles.css` (`.vaultmind-suggestion`,
+  `.vaultmind-ai-box`, `.vaultmind-ai-row`, `.vaultmind-ai-status`).
+- **Type safety.** Removed all `any` casts: `metadataCache.initialized`
+  uses a local widened type; per-issue offline suggestions use the typed
+  `LintIssue.offlineSuggestion` field; modal error handling uses
+  `unknown` + instanceof.
+- **Floating promises.** `runLint()` invocations from sync callbacks
+  marked with `void`; `runRecommendations()` button handler likewise.
+- **Cleanup.** Removed unused imports (`NoteMetadata`, `FolderConfig`,
+  `Recommendation`) and one redundant `as HTMLInputElement` assertion.
 
-### Bundle
-20.3 KB → 20.7 KB.
+### Tests / build
+- Tests: 67 → **73** (+6 CJK).
+- Test infra: added `__mocks__/obsidian.ts` so Jest can resolve the
+  `obsidian` package (which ships type-only declarations) in unit tests.
+- Build: production `main.js` ≈ 20.3 KB.
 
 ## [0.2.0] — 2026-04-23
 

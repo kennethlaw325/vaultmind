@@ -1,6 +1,6 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import VaultMindPlugin from "./main";
-import { FolderConfig, DEFAULT_FOLDER_CONFIGS } from "./types";
+import { DEFAULT_FOLDER_CONFIGS } from "./types";
 
 export class VaultMindSettingTab extends PluginSettingTab {
   plugin: VaultMindPlugin;
@@ -12,11 +12,11 @@ export class VaultMindSettingTab extends PluginSettingTab {
 
   display(): void {
     const { containerEl } = this;
+    const configDir = this.app.vault.configDir;
     containerEl.empty();
-    containerEl.createEl("h2", { text: "VaultMind Settings" });
 
     // === Global settings ===
-    containerEl.createEl("h3", { text: "Global" });
+    new Setting(containerEl).setName("Global").setHeading();
 
     new Setting(containerEl)
       .setName("Staleness threshold (days)")
@@ -62,7 +62,7 @@ export class VaultMindSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Exclude folders (global)")
       .setDesc(
-        "Comma-separated list of folders to always exclude. `.obsidian` and `.trash` are implicit."
+        `Comma-separated list of folders to always exclude. \`${configDir}\` and \`.trash\` are implicit.`
       )
       .addText((text) =>
         text
@@ -77,7 +77,7 @@ export class VaultMindSettingTab extends PluginSettingTab {
       );
 
     // === Per-folder configs ===
-    containerEl.createEl("h3", { text: "Per-folder overrides" });
+    new Setting(containerEl).setName("Per-folder overrides").setHeading();
     containerEl.createEl("p", {
       text:
         "Each row controls one folder prefix. `Exclude` skips scanning entirely. " +
@@ -118,8 +118,8 @@ export class VaultMindSettingTab extends PluginSettingTab {
           })
       );
 
-    // === AI Recommendations (Phase 2b) ===
-    containerEl.createEl("h3", { text: "AI recommendations" });
+    // === AI recommendations (Phase 2b) ===
+    new Setting(containerEl).setName("AI recommendations").setHeading();
     containerEl.createEl("p", {
       text:
         "Optional: provide an Anthropic API key to generate actionable fix suggestions for broken links and missing overviews. Uses claude-haiku-4-5 by default — typical run (30 issues) costs under $0.01.",
@@ -129,10 +129,10 @@ export class VaultMindSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Anthropic API key")
       .setDesc(
-        "Stored in .obsidian/plugins/vaultmind/data.json on your machine. Starts with sk-ant-..."
+        `Stored in ${configDir}/plugins/vaultmind/data.json on your machine. Starts with sk-ant-...`
       )
       .addText((text) => {
-        (text.inputEl as HTMLInputElement).type = "password";
+        text.inputEl.type = "password";
         return text
           .setPlaceholder("sk-ant-...")
           .setValue(this.plugin.settings.anthropicApiKey)
