@@ -121,8 +121,7 @@ export class VaultMindSettingTab extends PluginSettingTab {
     // === AI recommendations (Phase 2b) ===
     new Setting(containerEl).setName("AI recommendations").setHeading();
     containerEl.createEl("p", {
-      text:
-        "Provide an Anthropic API key to generate actionable fix suggestions for broken links and missing overviews. A typical run of 30 issues costs under $0.01.",
+      text: "Generate fix suggestions for broken links and missing overviews; a typical run costs under one cent.",
       cls: "setting-item-description",
     });
 

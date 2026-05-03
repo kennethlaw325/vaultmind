@@ -135,7 +135,7 @@ export class ResultsModal extends Modal {
     const hasKey = !!s?.anthropicApiKey;
     if (!hasKey) {
       aiBox.createEl("p", {
-        text: "Add an Anthropic API key in plugin settings to enable AI-powered fix suggestions for broken links and missing overviews.",
+        text: "Add an API key in plugin settings to enable fix suggestions for broken links and missing overviews.",
         cls: "setting-item-description",
       });
       return;
